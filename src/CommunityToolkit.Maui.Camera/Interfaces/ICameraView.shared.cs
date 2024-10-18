@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui.Camera;
 using CommunityToolkit.Maui.Core.Primitives;
+using CommunityToolkit.Maui.Primitives;
 
 namespace CommunityToolkit.Maui.Core;
 
@@ -40,6 +41,11 @@ public interface ICameraView : IView, IAsynchronousHandler
 	/// If no camera is selected, the value will be set as-is.
 	/// </remarks>
 	float ZoomFactor { get; internal set; }
+	
+	/// <summary>
+	/// Gets or sets the current camera's orientation.
+	/// </summary>
+	CameraOrientation CameraOrientation { get; internal set; }
 
 	/// <summary>
 	/// Gets whether the implementation is available.

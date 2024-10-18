@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using AVFoundation;
 using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Maui.Primitives;
 using CoreMedia;
 using Foundation;
 using UIKit;
@@ -124,7 +125,34 @@ partial class CameraManager
 			}
 		}
 
+		UIDevice.Notifications.ObserveOrientationDidChange(OnOrientationChanged);
+		
 		await PlatformStartCameraPreview(token);
+	}
+
+	protected void OnOrientationChanged(object? sender, NSNotificationEventArgs args)
+		=> CheckOrientationChanged();
+
+	protected void CheckOrientationChanged()
+	{
+		// TODO call on event
+		// UIDevice.Notifications.ObserveOrientationDidChange(OnOrientationChanged);
+		switch (UIDevice.CurrentDevice.Orientation)
+		{
+			default:
+			case UIDeviceOrientation.Portrait:
+				CameraOrientation = CameraOrientation.Portrait;
+				break;
+			case UIDeviceOrientation.LandscapeRight:
+				CameraOrientation = CameraOrientation.Landscape;
+				break;
+			case UIDeviceOrientation.PortraitUpsideDown:
+				CameraOrientation = CameraOrientation.ReversePortrait;
+				break;
+			case UIDeviceOrientation.LandscapeLeft:
+				CameraOrientation = CameraOrientation.ReverseLandscape;
+				break;
+		}
 	}
 
 	protected virtual async partial Task PlatformStartCameraPreview(CancellationToken token)
@@ -216,7 +244,7 @@ partial class CameraManager
 		try
 		{
 			Marshal.Copy(data.Bytes, dataBytes, 0, (int)data.Length);
-
+			cameraView.CameraOrientation = CameraOrientation;
 			cameraView.OnMediaCaptured(new MemoryStream(dataBytes));
 		}
 		catch (Exception ex)

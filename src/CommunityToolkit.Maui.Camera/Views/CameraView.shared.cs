@@ -4,6 +4,7 @@ using System.Windows.Input;
 using CommunityToolkit.Maui.Camera;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Core.Primitives;
+using CommunityToolkit.Maui.Primitives;
 
 namespace CommunityToolkit.Maui.Views;
 
@@ -24,6 +25,13 @@ public class CameraView : View, ICameraView
 	/// </summary>
 	public static readonly BindableProperty CameraFlashModeProperty =
 		BindableProperty.Create(nameof(CameraFlashMode), typeof(CameraFlashMode), typeof(CameraView), CameraViewDefaults.CameraFlashMode);
+
+
+	/// <summary>
+	/// Backing <see cref="BindableProperty"/> for the <see cref="CameraOrientation"/> property.
+	/// </summary>
+	public static readonly BindableProperty CameraOrientationProperty =
+		BindableProperty.Create(nameof(CameraOrientation), typeof(CameraOrientation), typeof(CameraView), CameraViewDefaults.CameraOrientation);
 
 	/// <summary>
 	/// Backing <see cref="BindableProperty"/> for the <see cref="IsTorchOn"/> property.
@@ -79,7 +87,7 @@ public class CameraView : View, ICameraView
 	/// </summary>
 	public static readonly BindableProperty StopCameraPreviewCommandProperty =
 		BindableProperty.CreateReadOnly(nameof(StopCameraPreviewCommand), typeof(ICommand), typeof(CameraView), default, BindingMode.OneWayToSource, defaultValueCreator: CameraViewDefaults.CreateStopCameraPreviewCommand).BindableProperty;
-
+	
 	readonly WeakEventManager weakEventManager = new();
 
 	TaskCompletionSource handlerCompletedTCS = new();
@@ -164,6 +172,13 @@ public class CameraView : View, ICameraView
 	{
 		get => (Size)GetValue(ImageCaptureResolutionProperty);
 		set => SetValue(ImageCaptureResolutionProperty, value);
+	}
+
+	/// <inheritdoc cref="ICameraView.CameraOrientation"/>
+	public CameraOrientation CameraOrientation
+	{
+		get => (CameraOrientation)GetValue(CameraOrientationProperty);
+		set => SetValue(CameraOrientationProperty, value);
 	}
 
 	/// <summary>

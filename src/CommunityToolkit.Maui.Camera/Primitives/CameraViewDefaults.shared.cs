@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows.Input;
 using CommunityToolkit.Maui.Core.Primitives;
+using CommunityToolkit.Maui.Primitives;
 using CommunityToolkit.Maui.Views;
 namespace CommunityToolkit.Maui.Core;
 
@@ -37,6 +38,11 @@ public static class CameraViewDefaults
 	/// Default value for <see cref="ICameraView.CameraFlashMode"/>
 	/// </summary>
 	public static CameraFlashMode CameraFlashMode { get; } = CameraFlashMode.Off;
+	
+	/// <summary>
+	/// Default value for <see cref="ICameraView.CameraOrientation"/>
+	/// </summary>
+	public static CameraOrientation CameraOrientation { get; } = CameraOrientation.Unknown;
 
 	internal static Command<CancellationToken> CreateCaptureImageCommand(BindableObject bindable)
 	{

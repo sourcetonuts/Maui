@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui.Core.Primitives;
+using CommunityToolkit.Maui.Primitives;
 
 namespace CommunityToolkit.Maui.Core;
 
@@ -23,6 +24,8 @@ partial class CameraManager(
 	internal Action OnLoaded { get; } = onLoaded;
 
 	internal bool IsInitialized { get; private set; }
+
+	protected CameraOrientation CameraOrientation { get; private set; } = CameraOrientation.Portrait;
 
 	/// <summary>
 	/// Whether the required permissions have been granted by the user through the use of the <see cref="Permissions"/> API.
