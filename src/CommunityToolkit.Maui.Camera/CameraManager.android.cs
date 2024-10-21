@@ -220,6 +220,7 @@ partial class CameraManager
 		.Build();
 
 		orientationEventListener = new OrientationChangeSubscriber(context, ConvertRotation);
+		orientationEventListener.Enable();
 
 		await StartCameraPreview(token);
 	}
