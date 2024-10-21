@@ -17,6 +17,7 @@ public partial class CameraViewPage : BasePage<CameraViewViewModel>
 		imagePath = Path.Combine(fileSystem.CacheDirectory, "camera-view-image.jpg");
 
 		Camera.MediaCaptured += OnMediaCaptured;
+		Camera.OrientationChanged += OnOrientationChanged;
 
 		Loaded += (s, e) =>
 		{
@@ -83,7 +84,15 @@ public partial class CameraViewPage : BasePage<CameraViewViewModel>
 
 			debugText.Text = $"Image saved to {imagePath}";
 		});
+	}
 
+	void OnOrientationChanged(object? sender, OrientationChangedEventArgs e)
+	{
+		Camera.CameraOrientation = e.CameraOrientation;
+		Dispatcher.Dispatch(() =>
+		{
+			debugText.Text = $"Camera Orientation to {e.CameraOrientation}";
+		});
 	}
 
 	void ZoomIn(object? sender, EventArgs e)

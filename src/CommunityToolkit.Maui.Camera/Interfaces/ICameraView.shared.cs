@@ -70,6 +70,12 @@ public interface ICameraView : IView, IAsynchronousHandler
 	void OnMediaCapturedFailed(string failureReason);
 
 	/// <summary>
+	/// Occurs when the camera orientation changes.
+	/// </summary>
+	/// <param name="orientation">A CameraOrientation enum containing the orientation of the camera.</param>
+	void OnOrientationChanged(CameraOrientation orientation);
+
+	/// <summary>
 	/// Triggers the camera to capture an image.
 	/// </summary>
 	/// <remarks>

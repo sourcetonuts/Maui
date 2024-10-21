@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Versioning;
 using Android.Content;
+using Android.Views;
 using AndroidX.Camera.Core;
 using AndroidX.Camera.Core.Impl.Utils.Futures;
 using AndroidX.Camera.Core.ResolutionSelector;
@@ -8,6 +9,7 @@ using AndroidX.Core.Content;
 using AndroidX.Lifecycle;
 using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Maui.Primitives;
 using Java.Lang;
 using Java.Util.Concurrent;
 using static Android.Media.Image;
@@ -18,7 +20,8 @@ namespace CommunityToolkit.Maui.Core;
 [SupportedOSPlatform("android21.0")]
 partial class CameraManager
 {
-	readonly Context context = mauiContext.Context ?? throw new CameraException($"Unable to retrieve {nameof(Context)}");
+	readonly Context context =
+		mauiContext.Context ?? throw new CameraException($"Unable to retrieve {nameof(Context)}");
 
 	NativePlatformCameraPreviewView? previewView;
 	IExecutorService? cameraExecutor;
@@ -30,6 +33,7 @@ partial class CameraManager
 	Preview? cameraPreview;
 	ResolutionSelector? resolutionSelector;
 	ResolutionFilter? resolutionFilter;
+	OrientationChangeSubscriber? orientationEventListener = null;
 
 	public void Dispose()
 	{
@@ -46,7 +50,9 @@ partial class CameraManager
 		{
 			previewView.SetScaleType(NativePlatformCameraPreviewView.ScaleType.FitCenter);
 		}
-		cameraExecutor = Executors.NewSingleThreadExecutor() ?? throw new CameraException($"Unable to retrieve {nameof(IExecutorService)}");
+
+		cameraExecutor = Executors.NewSingleThreadExecutor() ??
+		                 throw new CameraException($"Unable to retrieve {nameof(IExecutorService)}");
 
 		return previewView;
 	}
@@ -71,7 +77,7 @@ partial class CameraManager
 		if (resolutionFilter is not null)
 		{
 			if (Math.Abs(resolutionFilter.TargetSize.Width - resolution.Width) < double.Epsilon &&
-				Math.Abs(resolutionFilter.TargetSize.Height - resolution.Height) < double.Epsilon)
+			    Math.Abs(resolutionFilter.TargetSize.Height - resolution.Height) < double.Epsilon)
 			{
 				return;
 			}
@@ -91,9 +97,9 @@ partial class CameraManager
 		resolutionSelector?.Dispose();
 
 		resolutionSelector = new ResolutionSelector.Builder()
-		.SetAllowedResolutionMode(ResolutionSelector.PreferHigherResolutionOverCaptureRate)
-		.SetResolutionFilter(resolutionFilter)
-		.Build();
+			.SetAllowedResolutionMode(ResolutionSelector.PreferHigherResolutionOverCaptureRate)
+			.SetResolutionFilter(resolutionFilter)
+			.Build();
 
 		if (IsInitialized)
 		{
@@ -134,6 +140,9 @@ partial class CameraManager
 
 			resolutionFilter?.Dispose();
 			resolutionFilter = null;
+
+			orientationEventListener?.Dispose();
+			orientationEventListener = null;
 		}
 	}
 
@@ -149,7 +158,9 @@ partial class CameraManager
 
 		cameraProviderFuture.AddListener(new Runnable(async () =>
 		{
-			processCameraProvider = (ProcessCameraProvider)(cameraProviderFuture.Get() ?? throw new CameraException($"Unable to retrieve {nameof(ProcessCameraProvider)}"));
+			processCameraProvider = (ProcessCameraProvider)(cameraProviderFuture.Get() ??
+			                                                throw new CameraException(
+				                                                $"Unable to retrieve {nameof(ProcessCameraProvider)}"));
 
 			if (cameraProvider.AvailableCameras is null)
 			{
@@ -168,6 +179,24 @@ partial class CameraManager
 		}), ContextCompat.GetMainExecutor(context));
 
 		await cameraProviderTCS.Task.WaitAsync(token);
+	}
+
+	protected void ConvertRotation(int rotation)
+	{
+		int quadrant = rotation / 45;
+		var newOrientation = quadrant switch
+		{
+			1 or 2 => CameraOrientation.Landscape,
+			3 or 4 => CameraOrientation.ReversePortrait,
+			5 or 6 => CameraOrientation.ReverseLandscape,
+			_ => CameraOrientation.Portrait, // 0 or 7
+		};
+
+		if (CameraOrientation != newOrientation)
+		{
+			CameraOrientation = newOrientation;
+			cameraView.OnOrientationChanged(newOrientation);
+		}
 	}
 
 	protected async Task StartUseCase(CancellationToken token)
@@ -189,6 +218,8 @@ partial class CameraManager
 		.SetCaptureMode(ImageCapture.CaptureModeMaximizeQuality)
 		.SetResolutionSelector(resolutionSelector)
 		.Build();
+
+		orientationEventListener = new OrientationChangeSubscriber(context, ConvertRotation);
 
 		await StartCameraPreview(token);
 	}
@@ -262,6 +293,17 @@ partial class CameraManager
 		{
 			failure.Invoke(throwable);
 		}
+	}
+
+
+	/// <summary>
+	/// embedded class to subscribe to android's on OrientationEventListener
+	/// </summary>
+	sealed class OrientationChangeSubscriber(Context context, Action<int> handler)
+		: OrientationEventListener(context)
+	{
+		public override void OnOrientationChanged(int orientation)
+			=> handler?.Invoke(orientation);
 	}
 
 	sealed class ImageCallBack(ICameraView cameraView) : ImageCapture.OnImageCapturedCallback

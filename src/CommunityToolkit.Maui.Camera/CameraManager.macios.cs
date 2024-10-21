@@ -137,21 +137,18 @@ partial class CameraManager
 	{
 		// TODO call on event
 		// UIDevice.Notifications.ObserveOrientationDidChange(OnOrientationChanged);
-		switch (UIDevice.CurrentDevice.Orientation)
+		var newOrientation = UIDevice.CurrentDevice.Orientation switch
 		{
-			default:
-			case UIDeviceOrientation.Portrait:
-				CameraOrientation = CameraOrientation.Portrait;
-				break;
-			case UIDeviceOrientation.LandscapeRight:
-				CameraOrientation = CameraOrientation.Landscape;
-				break;
-			case UIDeviceOrientation.PortraitUpsideDown:
-				CameraOrientation = CameraOrientation.ReversePortrait;
-				break;
-			case UIDeviceOrientation.LandscapeLeft:
-				CameraOrientation = CameraOrientation.ReverseLandscape;
-				break;
+			UIDeviceOrientation.LandscapeRight => CameraOrientation.Landscape,
+			UIDeviceOrientation.LandscapeLeft => CameraOrientation.ReverseLandscape,
+			UIDeviceOrientation.PortraitUpsideDown => CameraOrientation.ReversePortrait,
+			_ => CameraOrientation.Portrait, //case UIDeviceOrientation.Portrait:
+		};
+
+		if (CameraOrientation != newOrientation)
+		{
+			CameraOrientation = newOrientation;
+			cameraView.OnOrientationChanged(newOrientation);
 		}
 	}
 

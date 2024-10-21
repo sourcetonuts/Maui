@@ -25,8 +25,7 @@ public class CameraView : View, ICameraView
 	/// </summary>
 	public static readonly BindableProperty CameraFlashModeProperty =
 		BindableProperty.Create(nameof(CameraFlashMode), typeof(CameraFlashMode), typeof(CameraView), CameraViewDefaults.CameraFlashMode);
-
-
+	
 	/// <summary>
 	/// Backing <see cref="BindableProperty"/> for the <see cref="CameraOrientation"/> property.
 	/// </summary>
@@ -108,6 +107,18 @@ public class CameraView : View, ICameraView
 	/// The <see cref="MediaCapturedEventArgs"/> contains the captured image data.
 	/// </remarks>
 	public event EventHandler<MediaCapturedEventArgs> MediaCaptured
+	{
+		add => weakEventManager.AddEventHandler(value);
+		remove => weakEventManager.RemoveEventHandler(value);
+	}
+
+	/// <summary>
+	/// Event that is raised when the camera orientation is changed.
+	/// </summary>
+	/// <remarks>
+	/// The <see cref="OrientationChangedEventArgs"/> contains the camera orientation.
+	/// </remarks>
+	public event EventHandler<OrientationChangedEventArgs> OrientationChanged
 	{
 		add => weakEventManager.AddEventHandler(value);
 		remove => weakEventManager.RemoveEventHandler(value);
@@ -219,6 +230,12 @@ public class CameraView : View, ICameraView
 	public void OnMediaCapturedFailed(string failureReason)
 	{
 		weakEventManager.HandleEvent(this, new MediaCaptureFailedEventArgs(failureReason), nameof(MediaCaptureFailed));
+	}
+
+	/// <inheritdoc cref="ICameraView.OnOrientationChanged"/>
+	public void OnOrientationChanged(CameraOrientation orientation)
+	{
+		weakEventManager.HandleEvent(this, new OrientationChangedEventArgs(orientation), nameof(OrientationChanged));
 	}
 
 	/// <inheritdoc cref="ICameraView.GetAvailableCameras"/>
